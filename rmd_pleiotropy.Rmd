@@ -1,0 +1,1088 @@
+---
+title: "doc_pleiotropy"
+author: "Kaitlin A. Schaal"
+date: "01 March 2022"
+output: html_document
+knit: (function(inputFile, encoding) { 
+          rmarkdown::render(inputFile,
+                        encoding=encoding, 
+                        output_file='doc_pleiotropy')})
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE)
+```
+
+This script analyses the data set data_pleiotropy.csv. This data sets contains the results of an experiment testing the effects of temperature and pH stress on spore germination of cooperation-defective mutants of Myxococcus xanthus, and the effects of these stresses on the mutants' abilities to cheat on their cooperation-proficient ancestor. To test for cheating, we use the relative fitness measure Wij.
+
+```{r}
+# settings and functions
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(DescTools)
+
+# ggplot2 settings to make the plots pretty
+customPlotTheme <- theme_bw(base_size = 16, base_family = "") +
+  theme(legend.title = element_text(size = rel(0.8)),
+        legend.text = element_text(size = rel(0.8)),
+        # background grid
+        strip.background = element_rect(colour="grey",
+                                        fill=FALSE,
+                                        size=0.1,
+                                        linetype="solid"))
+
+# viridis color palettes from: https://sjmgarnier.github.io/viridisLite/reference/viridis.html
+
+# summarySE() function
+## obtained from http://www.cookbook-r.com/Graphs/Plotting_means_and_error_bars_(ggplot2)/#Helper functions
+## to calculate means and 95% confidence intervals:
+## Gives count, mean, standard deviation, standard error of the mean, and confidence interval (default 95%).
+##   data: a data frame.
+##   measurevar: the name of a column that contains the variable to be summarized
+##   groupvars: a vector containing names of columns that contain grouping variables
+##   na.rm: a boolean that indicates whether to ignore NA's
+##   conf.interval: the percent range of the confidence interval (default is 95%)
+summarySE <- function(data=NULL, measurevar, groupvars=NULL, na.rm=FALSE,
+                      conf.interval=.95, .drop=TRUE) {
+  #library(plyr)
+  
+  # New version of length which can handle NA's: if na.rm==T, don't count them
+  length2 <- function (x, na.rm=FALSE) {
+    if (na.rm) sum(!is.na(x))
+    else       length(x)
+  }
+  
+  # This does the summary. For each group's data frame, return a vector with
+  # N, mean, and sd
+  datac <- plyr::ddply(data, groupvars, .drop=.drop,
+                       .fun = function(xx, col) {
+                         c(N    = length2(xx[[col]], na.rm=na.rm),
+                           mean = mean   (xx[[col]], na.rm=na.rm),
+                           sd   = sd     (xx[[col]], na.rm=na.rm)
+                         )
+                       },
+                       measurevar
+  )
+  
+  # Rename the "mean" column    
+  datac <- plyr::rename(datac, c("mean" = measurevar))
+  
+  datac$se <- datac$sd / sqrt(datac$N)  # Calculate standard error of the mean
+  
+  # Confidence interval multiplier for standard error
+  # Calculate t-statistic for confidence interval: 
+  # e.g., if conf.interval is .95, use .975 (above/below), and use df=N-1
+  ciMult <- qt(conf.interval/2 + .5, datac$N-1)
+  datac$ci <- datac$se * ciMult
+  
+  return(datac)
+}
+```
+
+
+### 1: import the data
+
+We import the data and plot spore production. We have dilution plate counts of CFUs for each pure culture, and for each mix with have a total count and a count of one of the partners. We first have to calculate spore production based on the dilution factors, and then calculate the spore production of the partnered strain in mixes by subtraction.
+
+For CFU counts of zero, we estimate the maximum undetectable number of CFUs (0.9) before calculating total spore production.
+
+```{r}
+# import the data
+data <- read.csv("data_pleiotropy.csv")
+str(data)
+
+# convert some columns from characters to factors
+data$defector <- as.factor(data$defector)
+data$cooperator <- as.factor(data$cooperator)
+data$environment <- as.factor(data$environment)
+data$type <-as.factor(data$type)
+
+# remove line L from consideration, as well as GJV1, which is the cooperator paired with it
+data <- data[which(!(data$defector == "Line L" | data$cooperator =="GJV1")),]
+
+# the replicate 9 pH treatments had some experimental errors, so we remove them
+data <- data[which(data$environment == "temperature" | data$environment =="pH" & data$replicate != "9"),]
+
+# we also remove the technical controls
+data <- data[which(data$type != "techcontrol"),]
+data$type <- factor(data$type)
+
+# in some cases, we have counts of zero spores. For these cases, we estimate the maximum undetectable number of spores, which is 0.9
+#for (i in 1:nrow(data)) {
+#  if(data$cfus[i] == 0) data$cfus[i] <- 0.9
+#}
+
+# calculate the total number of spores
+data <- mutate(data, numspores = cfus * 10^dilution)
+
+# calculate the log10 of the number of spores, to make a nice graph
+data <- mutate(data, logspores = log10(numspores + 1))
+str(data)
+
+# check how many replicates we have of each treatment
+repscontrols <- summarySE(data[which(data$type == "control"),], measurevar = "logspores", groupvars = c("plate", "treatment"))
+repstotal <- summarySE(data[which(data$type == "totalspores"),], measurevar = "logspores", groupvars = c("plate", "treatment"))
+
+# rearrange the order of 'plate'
+data$plate <- factor(data$plate, levels = c("GJV2", "DK4324", "DK5208", "GJV2:DK4324", "GJV2:DK5208"))
+
+# graph spore production
+pspores <- ggplot(data, aes(x = plate, y = logspores, color = type)) +
+  geom_point(size = 2, alpha = 0.3, show.legend = FALSE, position = position_dodge(width = 0.5))+
+  stat_summary(fun.data = "mean_cl_normal", size = 0.7, aes(y = logspores), position = position_dodge(width = 0.5)) +
+  labs(y = expression(Log[10]("spore count")), x = "Plate") +
+  facet_wrap(~treatment, dir="h", ncol = 3) +
+  customPlotTheme +
+  coord_cartesian(ylim = c(0, NA)) +
+  theme(legend.title = element_blank()) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  theme(legend.position = "top")
+pspores
+```
+
+
+### 2: pure culture spore production under standard conditions
+
+```{r}
+# graph pure culture control spore production (each strain alone, under standard conditions)
+pPCspores <- ggplot(data[which(data$treatment == "50" & data$type == "control"),], aes(x = plate, y = logspores)) +
+  geom_point(size = 2, alpha = 0.3, show.legend = FALSE, position = position_dodge(width = 0.5))+
+  stat_summary(fun.data = "mean_cl_normal", size = 0.7, aes(y = logspores), position = position_dodge(width = 0.5)) +
+  labs(y = expression(Log[10]("spore count"))) +
+  customPlotTheme +
+  coord_cartesian(ylim = c(0, NA)) +
+  scale_y_continuous(breaks=seq(0, 8, 1)) +
+  theme(legend.title = element_blank(), axis.title.x = element_blank())
+pPCspores
+```
+
+
+For the graph of each strain's spore count in pure culture, we used only the counts from non-selective plates (i.e. no antibiotics).
+
+We test for statistically significant differences among pure culture spore production values.
+
+```{r}
+# first run a GLM with replicate as a random factor
+fit <- aov(logspores ~ plate, data = data[which(data$treatment == "50" & data$type == "control"),])
+plot(fit)
+summary(fit)
+```
+Yes, the general linear model tells us that the strain identity matters for the spore count.
+
+```{r}
+# post-hoc tests for which comparisons are actually different.
+TukeyHSD(fit)
+```
+The contrast table shows us that they are all different from each other.
+
+Now we make a nice graph which shows the differences.
+
+```{r}
+# graph pure culture control spore production as above, with x axis rearranged and showing significance groups
+pPCspores <- ggplot(data[which(data$treatment == "50" & data$type == "control"),], aes(x = plate, y = logspores)) +
+  geom_point(size = 2, alpha = 0.3, show.legend = FALSE, position = position_dodge(width = 0.5))+
+  stat_summary(fun.data = "mean_cl_normal", size = 0.7, aes(y = logspores), position = position_dodge(width = 0.5)) +
+  labs(y = expression(Log[10]("spore count"))) +
+  customPlotTheme +
+  coord_cartesian(ylim = c(0, 8)) +
+  scale_y_continuous(breaks=seq(0, 8, 1)) +
+  annotate("text", x = 1.5, y = 7.85, label = "***") +
+  annotate("segment", x = 1, xend = 2, y = 7.75, yend = 7.75) +
+  annotate("text", x = 2, y = 7.35, label = "***") +
+  annotate("segment", x = 1, xend = 3, y = 7.25, yend = 7.25) +
+  annotate("text", x = 2.5, y = 5.6, label = "**") +
+  annotate("segment", x = 2, xend = 3, y = 5.5, yend = 5.5) +
+  theme(legend.title = element_blank(), axis.title.x = element_blank())
+pPCspores
+```
+
+N = 5 to 6
+*** means p < 0.005 in Tukey tests with that strain. ** means p < 0.01 in Tukey tests with that strain.
+
+
+### 3: stress effects and spore production in mixture
+
+Now we have an introductory overview of what the spore production data look like. Next, we calculate the individual spore production numbers for each partner in the mixes and under stressful conditions.
+
+```{r}
+# select the mixture data
+mixdata <- data[which(data$type != "control"),]
+
+# drop columns for antibiotic, dilution, cfus, and logspores. This facilitates manipulating the data table to do the calculation nicely
+mixdata <- select(mixdata,-c(antibiotic, dilution, cfus, logspores))
+
+# arrange the data table so that the matching total and one partner counts will be in columns next to each other
+
+# separate out the three types of spore counts and rename the column headers
+mixdata <- pivot_wider(data = mixdata, names_from = "type", values_from = "numspores", names_repair = "minimal", values_fill = NA)
+
+# calculate the missing values - cooperator spores or defector spores - by subtraction
+for (i in 1:nrow(mixdata)) {
+  if(is.na(mixdata$defectorspores[i] == T))
+    mixdata$defectorspores[i] <- mixdata$totalspores[i] - mixdata$cooperatorspores[i]
+  if(is.na(mixdata$cooperatorspores[i] == T))
+    mixdata$cooperatorspores[i] <- mixdata$totalspores[i] - mixdata$defectorspores[i]
+}
+
+# correct for estimates of maximum undetectable spores
+#for (i in 1:nrow(mixdata)) {
+#  if(mixdata$defectorspores[i] == 0) mixdata$defectorspores[i] <- mixdata$cooperatorspores[i]
+#  if(mixdata$cooperatorspores[i] == 0) mixdata$cooperatorspores[i] <- mixdata$defectorspores[i]
+#}
+
+# gather the types back into one column and calculate the log10 of the spore counts
+mixdata <- pivot_longer(data = mixdata, cols = c("totalspores", "defectorspores", "cooperatorspores"), names_to = c("type"))
+mixdata$type <- as.factor(mixdata$type)
+mixdata <- rename(mixdata, numspores = value)
+mixdata <- mutate(mixdata, logspores = log10(numspores + 1))
+
+# graph the spore production of the cooperator and defector pairs in mixture
+typelabels <- c("Cooperator", "Defector") # make the legend look nice
+
+# make the facet labels look nice
+graphmixdata <- mixdata[which(mixdata$type != "totalspores"),]
+graphmixdata$treatment <- as.factor(graphmixdata$treatment)
+graphmixdata$treatment <- factor(graphmixdata$treatment, labels = c(expression(~plain("pH 5.1")), expression(~plain("pH 6.8")), expression(~plain("pH 8.7")), expression("50 "^"o"*"C"), expression("55 "^"o"*"C"), expression("58 "^"o"*"C")))
+
+#pMixspores <- ggplot(graphmixdata, aes(x = plate, y = logspores, color = type)) +
+#  geom_point(size = 2, alpha = 0.3, show.legend = FALSE, position = position_dodge(width = 0.5))+
+#  stat_summary(fun.data = "mean_cl_normal", size = 0.7, aes(y = logspores), position = position_dodge(width = 0.5)) +
+#  labs(y = expression(Log[10]("spore count")), x = "Strain") +
+#  customPlotTheme +
+#  scale_colour_viridis_d(option = "plasma", begin = 0.25, end = 0.75, direction = 1, labels = typelabels) +
+#  facet_wrap(~treatment, dir="h", ncol = 3, labeller = label_parsed) +
+#  coord_cartesian(ylim = c(0, NA)) +
+#  scale_y_continuous(breaks = seq(0, 7, 1)) +
+#  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+#  theme(legend.position = "top", axis.title.x = element_blank()) +
+#  theme(legend.title = element_blank())
+#pMixspores
+```
+
+
+We look at spore production of the cooperator and the mixes in the non-standard treatments to see if they were actually stressful, ie resulted in lower spore survival.
+
+```{r}
+# add back the GJV2 pure culture data
+stressdata <- mixdata
+stressdata <- bind_rows(stressdata, data[which(data$type == "control" & data$defector == "none"),])
+stressdata <- as.data.frame(stressdata)
+
+# drop the columns for antibiotic, dilution, and cfus
+stressdata <- select(stressdata,-c(antibiotic, dilution, cfus))
+
+# graph the spore production of the cooperator and defector pairs in mixture
+stressdata <- stressdata[which(stressdata$type != "totalspores"),]
+stressdata$type <- factor(stressdata$type, levels = c("control", "cooperatorspores", "defectorspores"))
+typelabels <- c(~Cooperator[PC], ~Cooperator[Mix], ~Defector[Mix]) # make the legend look nice
+
+# make the facet labels look nice
+stressdata$treatment <- as.factor(stressdata$treatment)
+stressgraph <- stressdata
+stressgraph$treatment <- factor(stressdata$treatment, labels = c(expression(~plain("pH 5.1")), expression(~plain("pH 6.8")), expression(~plain("pH 8.7")), expression("50 "^"o"*"C"), expression("55 "^"o"*"C"), expression("58 "^"o"*"C")))
+
+pstress <- ggplot(stressgraph, aes(x = plate, y = logspores, color = type)) +
+  geom_point(size = 2, alpha = 0.3, show.legend = FALSE, position = position_dodge(width = 0.5))+
+  stat_summary(fun.data = "mean_cl_normal", size = 0.7, aes(y = logspores), position = position_dodge(width = 0.5)) +
+  labs(y = expression(Log[10]("spore count")), x = "Strain") +
+  customPlotTheme +
+  scale_colour_viridis_d(option = "plasma", begin = 0.25, end = 0.75, direction = 1, labels = typelabels) +
+  facet_wrap(~treatment, dir="h", ncol = 3, labeller = label_parsed) +
+  coord_cartesian(ylim = c(0, NA)) +
+  scale_y_continuous(breaks = seq(0, 7, 1)) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  theme(legend.position = "top", axis.title.x = element_blank()) +
+  theme(legend.title = element_blank())
+pstress
+```
+
+#### 3.1: statistics on stress effect of non-standard treatments
+
+We run a GLM.
+
+```{r}
+fit <- aov(logspores ~ treatment * type * defector, data = stressdata)
+plot(fit)
+summary(fit)
+```
+
+There are significant interactions in the model.
+
+We do a t-test for each strain/competitor for difference from the control, asking the question "are the non-standard conditions stressful, ie do they result in lower spore survival?"
+
+```{r}
+pvalues <- c()
+
+# GJV2 in pure culture
+# acid stress
+x <- stressdata[which(stressdata$type == "control" & stressdata$treatment == "5.1"),]$logspores
+y <- stressdata[which(stressdata$type == "control" & stressdata$treatment == "6.8"),]$logspores
+res <- t.test(x = x, y = y, alternative = "less", paired = T)
+pvalues <- c(pvalues, res$p.value)
+
+# basic stress
+x <- stressdata[which(stressdata$type == "control" & stressdata$treatment == "8.7"),]$logspores
+res <- t.test(x = x, y = y, alternative = "less", paired = T)
+pvalues <- c(pvalues, res$p.value)
+
+# 55 stress
+x <- stressdata[which(stressdata$type == "control" & stressdata$treatment == "55"),]$logspores
+y <- stressdata[which(stressdata$type == "control" & stressdata$treatment == "50"),]$logspores
+res <- t.test(x = x, y = y, alternative = "less", paired = T)
+pvalues <- c(pvalues, res$p.value)
+
+# 58 stress
+x <- stressdata[which(stressdata$type == "control" & stressdata$treatment == "58"),]$logspores
+res <- t.test(x = x, y = y, alternative = "less", paired = T)
+pvalues <- c(pvalues, res$p.value)
+
+
+# GJV2 in mixture with DK4324
+# acid stress
+x <- stressdata[which(stressdata$type == "cooperatorspores" & stressdata$defector == "DK4324" & stressdata$treatment == "5.1"),]$logspores
+y <- stressdata[which(stressdata$type == "cooperatorspores" & stressdata$defector == "DK4324" & stressdata$treatment == "6.8"),]$logspores
+res <- t.test(x = x, y = y, alternative = "less", paired = T)
+pvalues <- c(pvalues, res$p.value)
+
+# basic stress
+x <- stressdata[which(stressdata$type == "cooperatorspores" & stressdata$defector == "DK4324" & stressdata$treatment == "8.7"),]$logspores
+res <- t.test(x = x, y = y, alternative = "less", paired = T)
+pvalues <- c(pvalues, res$p.value)
+
+# 55 stress
+x <- stressdata[which(stressdata$type == "cooperatorspores" & stressdata$defector == "DK4324" & stressdata$treatment == "55"),]$logspores
+y <- stressdata[which(stressdata$type == "cooperatorspores" & stressdata$defector == "DK4324" & stressdata$treatment == "50"),]$logspores
+res <- t.test(x = x, y = y, alternative = "less", paired = T)
+pvalues <- c(pvalues, res$p.value)
+
+# 58 stress
+x <- stressdata[which(stressdata$type == "cooperatorspores" & stressdata$defector == "DK4324" & stressdata$treatment == "58"),]$logspores
+res <- t.test(x = x, y = y, alternative = "less", paired = T)
+pvalues <- c(pvalues, res$p.value)
+
+
+# GJV2 in mixture with DK5208
+# acid stress
+x <- stressdata[which(stressdata$type == "cooperatorspores" & stressdata$defector == "DK5208" & stressdata$treatment == "5.1"),]$logspores
+y <- stressdata[which(stressdata$type == "cooperatorspores" & stressdata$defector == "DK5208" & stressdata$treatment == "6.8"),]$logspores
+res <- t.test(x = x, y = y, alternative = "less", paired = T)
+pvalues <- c(pvalues, res$p.value)
+
+# basic stress
+x <- stressdata[which(stressdata$type == "cooperatorspores" & stressdata$defector == "DK5208" & stressdata$treatment == "8.7"),]$logspores
+res <- t.test(x = x, y = y, alternative = "less", paired = T)
+pvalues <- c(pvalues, res$p.value)
+
+# 55 stress
+x <- stressdata[which(stressdata$type == "cooperatorspores" & stressdata$defector == "DK5208" & stressdata$treatment == "55"),]$logspores
+y <- stressdata[which(stressdata$type == "cooperatorspores" & stressdata$defector == "DK5208" & stressdata$treatment == "50"),]$logspores
+res <- t.test(x = x, y = y, alternative = "less", paired = T)
+pvalues <- c(pvalues, res$p.value)
+
+# 58 stress
+x <- stressdata[which(stressdata$type == "cooperatorspores" & stressdata$defector == "DK5208" & stressdata$treatment == "58"),]$logspores
+res <- t.test(x = x, y = y, alternative = "less", paired = T)
+pvalues <- c(pvalues, res$p.value)
+
+
+# DK4324 in mixture
+# acid stress
+x <- stressdata[which(stressdata$type == "defectorspores" & stressdata$defector == "DK4324" & stressdata$treatment == "5.1"),]$logspores
+y <- stressdata[which(stressdata$type == "defectorspores" & stressdata$defector == "DK4324" & stressdata$treatment == "6.8"),]$logspores
+res <- t.test(x = x, y = y, alternative = "less", paired = T)
+pvalues <- c(pvalues, res$p.value)
+
+# basic stress
+x <- stressdata[which(stressdata$type == "defectorspores" & stressdata$defector == "DK4324" & stressdata$treatment == "8.7"),]$logspores
+res <- t.test(x = x, y = y, alternative = "less", paired = T)
+pvalues <- c(pvalues, res$p.value)
+
+# 55 stress
+x <- stressdata[which(stressdata$type == "defectorspores" & stressdata$defector == "DK4324" & stressdata$treatment == "55"),]$logspores
+y <- stressdata[which(stressdata$type == "defectorspores" & stressdata$defector == "DK4324" & stressdata$treatment == "50"),]$logspores
+res <- t.test(x = x, y = y, alternative = "less", paired = T)
+pvalues <- c(pvalues, res$p.value)
+
+# 58 stress
+x <- stressdata[which(stressdata$type == "defectorspores" & stressdata$defector == "DK4324" & stressdata$treatment == "58"),]$logspores
+res <- t.test(x = x, y = y, alternative = "less", paired = T)
+pvalues <- c(pvalues, res$p.value)
+
+
+# DK5208 in mixture
+# acid stress
+x <- stressdata[which(stressdata$type == "defectorspores" & stressdata$defector == "DK5208" & stressdata$treatment == "5.1"),]$logspores
+y <- stressdata[which(stressdata$type == "defectorspores" & stressdata$defector == "DK5208" & stressdata$treatment == "6.8"),]$logspores
+res <- t.test(x = x, y = y, alternative = "less", paired = T)
+pvalues <- c(pvalues, res$p.value)
+
+# basic stress
+x <- stressdata[which(stressdata$type == "defectorspores" & stressdata$defector == "DK5208" & stressdata$treatment == "8.7"),]$logspores
+res <- t.test(x = x, y = y, alternative = "less", paired = T)
+pvalues <- c(pvalues, res$p.value)
+
+# 55 stress
+x <- stressdata[which(stressdata$type == "defectorspores" & stressdata$defector == "DK5208" & stressdata$treatment == "55"),]$logspores
+y <- stressdata[which(stressdata$type == "defectorspores" & stressdata$defector == "DK5208" & stressdata$treatment == "50"),]$logspores
+res <- t.test(x = x, y = y, alternative = "less", paired = T)
+pvalues <- c(pvalues, res$p.value)
+
+# 58 stress
+x <- stressdata[which(stressdata$type == "defectorspores" & stressdata$defector == "DK5208" & stressdata$treatment == "58"),]$logspores
+res <- t.test(x = x, y = y, alternative = "less", paired = T)
+pvalues <- c(pvalues, res$p.value)
+
+
+# output adjusted p-values
+c("GJV2 pure culture: acid, basic, 55, 58. GJV2 mix DK4324: acid, basic, 55, 58. GJV2 mix DK5208: acid, basic, 55, 58. DK4324 mix: acid, basic, 55, 58. DK5208 mix: acid, basic, 55, 58")
+round(p.adjust(pvalues, method = "BH"), 4)
+```
+
+Most conditions are stressful. GJV2 mixed with DK4324 under pH 5.1 is not (p = 0.1654), nor is DK4324 in mixture under pH 5.1 (p = 0.1391), or DK5208 in mixture under pH 5.1 (p = 0.3621). GJV2 in pure culture under pH 5.1 is close to significance, p = 0.0542.
+
+### 4: stress tolerance
+
+Calculate stress tolerances and cheating abilities for each defector strain under temperature stress and pH stress.
+
+stress tolerance = spores of strain X under stressful condition / spores of strain X under control condition
+
+The control condition for temperature stress is 50 deg C, and for pH stress is 6.8.
+
+We remove instances where total spore count and selective spore count for a mixture were both zero, because the estimate of the metric is in that case not biologically useful due to uncertainty about the actual spore counts of both parties.
+
+```{r}
+# remove instances where total spore count and selective spore count for a mixture were both zero
+newdata <- data[which(!(data$replicate == "4" & data$defector == "DK4324" & data$treatment == "58")),]
+newdata <- newdata[which(!(newdata$replicate == "4" & newdata$defector == "DK4324" & newdata$treatment == "8.7")),]
+newdata <- newdata[which(!(newdata$replicate == "9" & newdata$defector == "DK4324" & newdata$treatment == "58")),]
+newdata <- newdata[which(!(newdata$replicate == "9" & newdata$defector == "DK4324" & newdata$treatment == "8.7")),]
+newdata <- newdata[which(!(newdata$replicate == "9" & newdata$defector == "DK5208" & newdata$treatment == "8.7")),]
+
+# in some cases, we have counts of zero spores. For these cases, we estimate the maximum undetectable number of spores, which is 0.9
+for (i in 1:nrow(newdata)) {
+  if(newdata$cfus[i] == 0) newdata$cfus[i] <- 0.9
+}
+
+# calculate the total number of spores
+newdata <- mutate(newdata, numspores = cfus * 10^dilution)
+```
+
+
+```{r}
+# re-calculate the spore number estimates for mixes
+# if 0 spores were counted, estimate 0.9 spores present
+# we use these estimates for the stress tolerance and Wij metrics
+
+# select the mixture data
+mixdata2 <- newdata[which(newdata$type != "control"),]
+
+# drop columns for antibiotic, dilution, cfus, and logspores. This facilitates manipulating the data table to do the calculation nicely
+mixdata2 <- select(mixdata2,-c(antibiotic, dilution, cfus, logspores))
+
+# arrange the data table so that the matching total and one partner counts will be in columns next to each other
+
+# separate out the three types of spore counts and rename the column headers
+mixdata2 <- pivot_wider(data = mixdata2, names_from = "type", values_from = "numspores", names_repair = "minimal", values_fill = NA)
+
+# calculate the missing values - cooperator spores or defector spores - by subtraction
+for (i in 1:nrow(mixdata2)) {
+  if(is.na(mixdata2$defectorspores[i] == T))
+    mixdata2$defectorspores[i] <- mixdata2$totalspores[i] - mixdata2$cooperatorspores[i]
+  if(is.na(mixdata2$cooperatorspores[i] == T))
+    mixdata2$cooperatorspores[i] <- mixdata2$totalspores[i] - mixdata2$defectorspores[i]
+}
+
+# correct for estimates of maximum undetectable spores
+for (i in 1:nrow(mixdata2)) {
+  if(mixdata2$defectorspores[i] == 0) mixdata2$defectorspores[i] <- mixdata2$cooperatorspores[i]
+  if(mixdata2$cooperatorspores[i] == 0) mixdata2$cooperatorspores[i] <- mixdata2$defectorspores[i]
+}
+
+# gather the types back into one column and calculate the log10 of the spore counts
+mixdata2 <- pivot_longer(data = mixdata2, cols = c("totalspores", "defectorspores", "cooperatorspores"), names_to = c("type"))
+mixdata2$type <- as.factor(mixdata2$type)
+mixdata2 <- rename(mixdata2, numspores = value)
+mixdata2 <- mutate(mixdata2, logspores = log10(numspores + 1))
+
+# include the GJV2 pure culture data
+mixdata2 <- bind_rows(mixdata2, newdata[which(newdata$type == "control" & newdata$defector == "none"),])
+mixdata2 <- as.data.frame(mixdata2)
+
+# again, we want to drop the columns for antibiotic, dilution, cfus, and logspores
+mixdata2 <- select(mixdata2,-c(antibiotic, dilution, cfus, logspores))
+
+# for analysis purposes, drop totalspores counts and identify the focal strain
+mixdata2 <- mixdata2[which(mixdata2$type != "totalspores"),]
+
+mixdata2$defector <- as.character(mixdata2$defector)
+mixdata2$cooperator <- as.character(mixdata2$cooperator)
+mixdata2 <- mutate(mixdata2, strain = "a")
+for (i in 1:nrow(mixdata2)) {
+  if(mixdata2$type[i] == "defectorspores") mixdata2$strain[i] <- mixdata2$defector[i]
+  if(mixdata2$type[i] == "cooperatorspores") mixdata2$strain[i] <- mixdata2$cooperator[i]
+  if(mixdata2$type[i] == "control") mixdata2$strain[i] <- "GJV2pc"
+}
+mixdata2$defector <- as.factor(mixdata2$defector)
+mixdata2$cooperator <- as.factor(mixdata2$cooperator)
+mixdata2$strain <- as.factor(mixdata2$strain)
+```
+
+
+```{r}
+# separate data into temperature stress and pH stress
+tempdata <- mixdata2[which(mixdata2$environment == "temperature"),]
+phdata <- mixdata2[which(mixdata2$environment == "pH"),]
+
+
+# separate the data into control and stressful conditions
+tempcontroldata <- tempdata[which(tempdata$treatment == "50"),]
+tempdata <- tempdata[which(tempdata$treatment != "50"),]
+
+phcontroldata <- phdata[which(phdata$treatment == "6.8"),]
+phdata <- phdata[which(phdata$treatment != "6.8"),]
+
+# calculate the stress tolerance
+tempdata <- mutate(tempdata, stresstolerance = 1)
+
+for (i in 1:nrow(tempdata)) {
+  tempdata$stresstolerance[i] <- log10(tempdata$numspores[i] / tempcontroldata[which(tempcontroldata$replicate == tempdata$replicate[i] & tempcontroldata$plate == tempdata$plate[i] & tempcontroldata$type == tempdata$type[i]), c("numspores")])
+}
+
+
+phdata <- mutate(phdata, stresstolerance = 1)
+
+for (i in 1:nrow(phdata)) {
+  phdata$stresstolerance[i] <- log10(phdata$numspores[i] / phcontroldata[which(phcontroldata$replicate == phdata$replicate[i] & phcontroldata$plate == phdata$plate[i] & phcontroldata$type == phdata$type[i]), c("numspores")])
+}
+
+# graph stress tolerances
+newtypelabels <- c(~Cooperator[PC], ~Cooperator[Mix], ~Defector[Mix]) # make the legend look nice
+tempdata$type <- factor(tempdata$type, levels = c("control", "cooperatorspores", "defectorspores", "totalspores"))
+phdata$type <- factor(phdata$type, levels = c("control", "cooperatorspores", "defectorspores", "totalspores"))
+
+tempdata2 <- tempdata
+tempdata2$treatment <- factor(tempdata2$treatment, labels = c(expression("55 "^"o"*"C"), expression("58 "^"o"*"C"))) # make the temperature facet labels look nice
+
+# check how many replicates we have of each treatment
+repstemp <- summarySE(tempdata2, measurevar = "stresstolerance", groupvars = c("plate", "treatment", "type"))
+repspH <- summarySE(phdata, measurevar = "stresstolerance", groupvars = c("plate", "treatment", "type"))
+
+pstresstemp <- ggplot(tempdata2, aes(x = plate, y = stresstolerance, color = type)) +
+  geom_point(size = 2, alpha = 0.3, show.legend = FALSE, position = position_dodge(width = 0.5))+
+  stat_summary(fun.data = "mean_cl_normal", size = 0.7, aes(y = stresstolerance), position = position_dodge(width = 0.5)) +
+  geom_abline(slope = 0, intercept = 0) +
+  labs(y = "Stress tolerance", x = "Plate") +
+  facet_wrap(~treatment, dir="h", ncol = 2, labeller = label_parsed) +
+  customPlotTheme +
+  scale_colour_viridis_d(option = "mako", begin = 0.2, end = 0.8, direction = 1, labels = newtypelabels) +
+  coord_cartesian(ylim = c(-6, 1.5)) +
+  scale_y_continuous(breaks = seq(-6, 1.5, 1)) +
+  theme(legend.title = element_blank()) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1), axis.title.x = element_blank()) +
+  theme(legend.position = "top")
+pstresstemp
+
+pstressph <- ggplot(phdata, aes(x = plate, y = stresstolerance, color = type)) +
+  geom_point(size = 2, alpha = 0.3, show.legend = FALSE, position = position_dodge(width = 0.5))+
+  stat_summary(fun.data = "mean_cl_normal", size = 0.7, aes(y = stresstolerance), position = position_dodge(width = 0.5)) +
+  geom_abline(slope = 0, intercept = 0) +
+  labs(y = "Stress tolerance", x = "Plate") +
+  facet_wrap(~treatment, dir="h", ncol = 2, labeller = as_labeller(c("5.1" = "pH 5.1", "8.7" = "pH 8.7"))) + #make the pH facet labels look nice
+  customPlotTheme +
+  scale_colour_viridis_d(option = "mako", begin = 0.2, end = 0.8, direction = 1, labels = newtypelabels) +
+  coord_cartesian(ylim = c(-6, 1.5)) +
+  scale_y_continuous(breaks = seq(-6, 1.5, 1)) +
+  theme(legend.title = element_blank()) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1), axis.title.x = element_blank()) +
+  theme(legend.position = "top")
+pstressph
+```
+
+For temperature stress, N = 3 to 6
+For pH stress, N = 3 to 5
+
+
+#### 4.1: statistics on stress tolerance
+
+We check for pleiotropy, which in this case is shown by the defector having a different stress tolerance than the cooperator in mixture. The cooperator may also be affected by mixing and have a different stress tolerance than in pure culture.
+
+##### 4.1.1: temperature 
+
+```{r}
+fit <- aov(stresstolerance ~ strain * treatment, data = tempdata)
+plot(fit)
+summary(fit)
+```
+
+For temperature, strain and treatment both significantly influence variation within the data, although this seems to be driven by GJV2.
+
+Following this, we have two questions: is cheater stress tolerance different from cooperator stress tolerance? and is cooperator stress tolerance in mixture different from cooperator stress tolerance in pure culture? For the first, we do t-tests with Bonferroni-Holm correction. For the second, we do Dunnett tests.
+
+Is cheater stress tolerance different from cooperator stress tolerance, under temperature stress?
+
+```{r}
+pvalues <- c()
+
+# 55 degrees C
+# DK4324
+x <- tempdata[which(tempdata$treatment == "55" & tempdata$defector == "DK4324" & tempdata$type == "defectorspores"),]$stresstolerance
+y <- tempdata[which(tempdata$treatment == "55" & tempdata$defector == "DK4324" & tempdata$type == "cooperatorspores"),]$stresstolerance
+res <- t.test(x = x, y = y, alternative = "two.sided", paired = T)
+pvalues <- c(pvalues, res$p.value)
+
+# DK5208
+x <- tempdata[which(tempdata$treatment == "55" & tempdata$defector == "DK5208" & tempdata$type == "defectorspores"),]$stresstolerance
+y <- tempdata[which(tempdata$treatment == "55" & tempdata$defector == "DK5208" & tempdata$type == "cooperatorspores"),]$stresstolerance
+res <- t.test(x = x, y = y, alternative = "two.sided", paired = T)
+pvalues <- c(pvalues, res$p.value)
+
+# 58 degrees C
+# DK4324
+x <- tempdata[which(tempdata$treatment == "58" & tempdata$defector == "DK4324" & tempdata$type == "defectorspores"),]$stresstolerance
+y <- tempdata[which(tempdata$treatment == "58" & tempdata$defector == "DK4324" & tempdata$type == "cooperatorspores"),]$stresstolerance
+res <- t.test(x = x, y = y, alternative = "two.sided", paired = T)
+pvalues <- c(pvalues, res$p.value)
+
+# DK5208
+x <- tempdata[which(tempdata$treatment == "58" & tempdata$defector == "DK5208" & tempdata$type == "defectorspores"),]$stresstolerance
+y <- tempdata[which(tempdata$treatment == "58" & tempdata$defector == "DK5208" & tempdata$type == "cooperatorspores"),]$stresstolerance
+res <- t.test(x = x, y = y, alternative = "two.sided", paired = T)
+pvalues <- c(pvalues, res$p.value)
+
+# multiple testing correction
+
+c("DK4324 55", "DK5208 55", "DK4324 58", "DK5208 58")
+round(p.adjust(pvalues, method = "BH"), 4)
+```
+
+We find evidence for pleiotropy of stress tolerance and the cheater defect in strain DK4324 at 55 degrees.
+
+Is cooperator stress tolerance different in mixture vs in pure culture?
+
+```{r}
+c("55")
+DunnettTest(stresstolerance ~ plate, data = tempdata[which(tempdata$treatment == "55" & tempdata$type == "cooperatorspores" | tempdata$treatment == "55" & tempdata$type == "control"),], control = "GJV2")
+
+c("58")
+DunnettTest(stresstolerance ~ plate, data = tempdata[which(tempdata$treatment == "58" & tempdata$type == "cooperatorspores" | tempdata$treatment == "58" & tempdata$type == "control"),], control = "GJV2")
+```
+
+We find no evidence for differences between pure-culture and mixed-culture stress tolerances of GVJ2 when mixed with either of the cheaters under temperature stress. We therefore do not correct for multiple testing of the two Dunnett tests across the two temperature treatments.
+
+##### 4.1.2: pH
+
+```{r}
+fit <- aov(stresstolerance ~ strain * treatment, data = phdata)
+plot(fit)
+summary(fit)
+```
+
+For pH, the interactions are all significant, which means that we need individual models for each treatment level.
+
+```{r}
+c("5.1")
+fit <- aov(stresstolerance ~ strain * treatment, data = phdata[which(phdata$treatment == "5.1"),])
+plot(fit)
+summary(fit)
+
+c("8.7")
+fit <- aov(stresstolerance ~ strain * treatment, data = phdata[which(phdata$treatment == "8.7"),])
+plot(fit)
+summary(fit)
+```
+
+There are differences at pH 8.7, but not at 5.1. So we continue analyzing the pH 8.7 data for specific differences.
+
+Following this, we have two questions: is cheater stress tolerance different from cooperator stress tolerance? and is cooperator stress tolerance in mixture different from cooperator stress tolerance in pure culture? For the first, we do t-tests. For the second, we do Dunnett tests. We use Bonferroni-Holm correction.
+
+Is cheater stress tolerance different from cooperator stress tolerance, under temperature stress?
+
+We include t-tests for pH 5.1 here so that they are accounted for in the correction.
+
+```{r}
+pvalues <- c()
+
+# pH 5.1
+# DK4324
+x <- phdata[which(phdata$treatment == "5.1" & phdata$defector == "DK4324" & phdata$type == "defectorspores"),]$stresstolerance
+y <- phdata[which(phdata$treatment == "5.1" & phdata$defector == "DK4324" & phdata$type == "cooperatorspores"),]$stresstolerance
+res <- t.test(x = x, y = y, alternative = "two.sided", paired = T)
+pvalues <- c(pvalues, res$p.value)
+
+# DK5208
+x <- phdata[which(phdata$treatment == "5.1" & phdata$defector == "DK5208" & phdata$type == "defectorspores"),]$stresstolerance
+y <- phdata[which(phdata$treatment == "5.1" & phdata$defector == "DK5208" & phdata$type == "cooperatorspores"),]$stresstolerance
+res <- t.test(x = x, y = y, alternative = "two.sided", paired = T)
+pvalues <- c(pvalues, res$p.value)
+
+# pH 8.7
+# DK4324
+x <- phdata[which(phdata$treatment == "8.7" & phdata$defector == "DK4324" & phdata$type == "defectorspores"),]$stresstolerance
+y <- phdata[which(phdata$treatment == "8.7" & phdata$defector == "DK4324" & phdata$type == "cooperatorspores"),]$stresstolerance
+res <- t.test(x = x, y = y, alternative = "two.sided", paired = T)
+pvalues <- c(pvalues, res$p.value)
+
+# DK5208
+x <- phdata[which(phdata$treatment == "8.7" & phdata$defector == "DK5208" & phdata$type == "defectorspores"),]$stresstolerance
+y <- phdata[which(phdata$treatment == "8.7" & phdata$defector == "DK5208" & phdata$type == "cooperatorspores"),]$stresstolerance
+res <- t.test(x = x, y = y, alternative = "two.sided", paired = T)
+pvalues <- c(pvalues, res$p.value)
+
+# multiple testing correction
+
+c("DK4324 5.1, DK5208 5.1, DK4324 8.7, DK5208 8.7")
+round(p.adjust(pvalues, method = "BH"), 4)
+```
+
+We find evidence for pleiotropy of stress tolerance and the cheater defect in strain DK5208 at pH 8.7.
+
+Is cooperator stress tolerance different in mixture vs in pure culture?
+
+```{r}
+c("8.7")
+DunnettTest(stresstolerance ~ plate, data = phdata[which(phdata$treatment == "8.7" & phdata$type == "cooperatorspores" | phdata$treatment == "8.7" & phdata$type == "control"),], control = "GJV2")
+```
+
+We find evidence for social pleiotropy of GJV2 when mixed with DK4324 at pH 8.7. That is, the stress tolerance of the cooperator is altered in mixed culture relative to pure culture.
+
+
+##### 4.1.3: differences between cheaters
+
+Did the two cheaters produce different numbers of spores than each other under the different stress treatments? Tests are unpaired because the cheaters are not always present in the same replicates and have different numbers of replicates.
+
+```{r}
+pvalues <- c()
+
+# pH 5.1
+x <- phdata[which(phdata$treatment == "5.1" & phdata$defector == "DK4324" & phdata$type == "defectorspores"),]$stresstolerance
+y <- phdata[which(phdata$treatment == "5.1" & phdata$defector == "DK5208" & phdata$type == "defectorspores"),]$stresstolerance
+res <- t.test(x = x, y = y, alternative = "two.sided")
+pvalues <- c(pvalues, res$p.value)
+
+# pH 8.7
+x <- phdata[which(phdata$treatment == "8.7" & phdata$defector == "DK4324" & phdata$type == "defectorspores"),]$stresstolerance
+y <- phdata[which(phdata$treatment == "8.7" & phdata$defector == "DK5208" & phdata$type == "defectorspores"),]$stresstolerance
+res <- t.test(x = x, y = y, alternative = "two.sided")
+pvalues <- c(pvalues, res$p.value)
+
+# 55 deg C
+x <- tempdata[which(tempdata$treatment == "55" & tempdata$defector == "DK4324" & tempdata$type == "defectorspores"),]$stresstolerance
+y <- tempdata[which(tempdata$treatment == "55" & tempdata$defector == "DK5208" & tempdata$type == "defectorspores"),]$stresstolerance
+res <- t.test(x = x, y = y, alternative = "two.sided")
+pvalues <- c(pvalues, res$p.value)
+
+# 58 deg C
+x <- tempdata[which(tempdata$treatment == "58" & tempdata$defector == "DK4324" & tempdata$type == "defectorspores"),]$stresstolerance
+y <- tempdata[which(tempdata$treatment == "58" & tempdata$defector == "DK5208" & tempdata$type == "defectorspores"),]$stresstolerance
+res <- t.test(x = x, y = y, alternative = "two.sided")
+pvalues <- c(pvalues, res$p.value)
+
+# multiple testing correction
+
+c("5.1, 8.7, 55, 58")
+round(p.adjust(pvalues, method = "BH"), 4)
+```
+
+
+##### 4.1.4: difference in variances between treatments
+
+We noticed that treatments that seemed more stressful, ie 58 deg C and pH 8.7, produced greater variation in the observed responses. Here we test this.
+
+```{r}
+vartemp <- summarySE(data = tempdata, measurevar = "stresstolerance", groupvars = c("environment", "treatment", "plate", "defector", "type"))
+varph <- summarySE(data = phdata, measurevar = "stresstolerance", groupvars = c("environment", "treatment", "plate", "defector", "type"))
+
+var <- dplyr::bind_rows(vartemp, varph)
+var <- dplyr::mutate(var, variance = 1)
+for (i in 1:nrow(var)) {
+  var$variance[i] <- var$sd[i]^2
+}
+
+var$treatment <- as.factor(var$treatment)
+
+newtypelabels <- c(~Cooperator[PC], ~Cooperator[Mix], ~Defector[Mix]) # make the legend look nice
+
+pvar <- ggplot(var, aes(x = treatment, y = variance)) +
+  geom_point(size = 2, alpha = 1, aes(color = type, shape = defector), show.legend = TRUE, position = position_dodge(width = 0.5))+
+  stat_summary(fun.data = "mean_cl_normal", size = 0.7, aes(y = variance), position = position_dodge(width = 0.5)) +
+  geom_abline(slope = 0, intercept = 0) +
+  labs(y = "Variance in stress tolerance", x = "Treatment") +
+  facet_wrap(~environment, dir="h", ncol = 2) +
+  customPlotTheme +
+  scale_colour_viridis_d(option = "plasma", begin = 0.1, end = 0.8, direction = 1, labels = newtypelabels) +
+  #coord_cartesian(ylim = c(-6, 1.5)) +
+  #scale_y_continuous(breaks = seq(-6, 1.5, 1)) +
+  theme(legend.title = element_blank()) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1), axis.title.x = element_blank()) +
+  theme(legend.position = "right")
+pvar
+```
+
+```{r}
+pvalues <- c()
+
+# pH
+x <- var[which(var$treatment == "5.1"),]$variance
+y <- var[which(var$treatment == "8.7"),]$variance
+res <- t.test(x = x, y = y, alternative = "two.sided", paired = F)
+pvalues <- c(pvalues, res$p.value)
+
+# temperature
+x <- var[which(var$treatment == "55"),]$variance
+y <- var[which(var$treatment == "58"),]$variance
+res <- t.test(x = x, y = y, alternative = "two.sided", paired = F)
+pvalues <- c(pvalues, res$p.value)
+
+# multiple testing correction
+
+c("pH, temperature")
+round(p.adjust(pvalues, method = "BH"), 4)
+```
+
+
+
+
+### 5: cheating
+
+Cheating ability is represented by the relative fitness measure Wij:
+
+Wij =  log10(number spores of cheater in mixture/number spores of partner in mixture) - log10(number initial cells of cheater in mixture/number initial cells of partner in mixture).
+
+From methods: defector was initially present as 10% of a 100 ul aliquot of a cell mixture at a concentration of 5 x 10^9 cells/ml, and cooperator was initially present as the remaining 90%, so in this case,
+
+Wij =  log10(number spores of cheater in mixture/number spores of partner in mixture) - log10(0.1).
+
+```{r}
+# select the data for defector and cooperator spore production in mixes
+cheatdata <- dplyr::select(mixdata2[which(mixdata2$type != "control"),], -c("strain"))
+
+# rearrange the data frame to facilitate the calculation
+cheatdata <- pivot_wider(data = cheatdata, names_from = "type", values_from = "numspores", names_repair = "minimal")
+
+cheatdata$treatment <- as.factor(cheatdata$treatment)
+
+# calculate the Wij
+cheatdata <- mutate(cheatdata, wij = 1)
+
+a <- 0.1 * (0.1 * (5 * 10^9)) # from methods: defector was initially present as 10% of a 100 ul aliquot of a cell mixture at a concentration of 5 x 10^9 cells/ml
+b <- 0.9 * (0.1 * (5 * 10^9)) # and the cooperator was initially present as the remaining 90%
+
+for (i in 1:nrow(cheatdata)) {
+  cheatdata$wij[i] <- log10(cheatdata$defectorspores[i] / cheatdata$cooperatorspores[i]) - log10(0.1)
+}
+
+# graph Wijs of defectors
+trtlabels <- c("5.1", ~bold("6.8"), "8.7", expression(~bold("50 "^"o"*"C")), expression("55 "^"o"*"C"), expression("58 "^"o"*"C")) # make the x-axis labels look nice
+envlabels <- c("pH", "Temperature") # make the legend look nice
+
+# check how many replicates we have of each treatment
+repswij <- summarySE(cheatdata, measurevar = "wij", groupvars = c("plate", "treatment"))
+
+pwij <- ggplot(cheatdata, aes(x = as.factor(treatment), y = wij)) +
+  geom_point(size = 2, alpha = 0.3, show.legend = FALSE, position = position_dodge(width = 0.5), aes(color = environment)) +
+  stat_summary(fun.data = "mean_cl_normal", size = 0.7, aes(color = environment), position = position_dodge(width = 0.5)) +
+  geom_abline(slope = 0, intercept = 0) +
+  facet_wrap(~defector, dir="h", ncol = 2) +
+  labs(y = "Relative fitness (" ~ italic(W[ij]) ~ ")", color = "Stress:") +
+  customPlotTheme +
+  scale_colour_viridis_d(option = "mako", begin = 0.35, end = 0.75, direction = -1, labels = envlabels) +
+  scale_x_discrete(labels = trtlabels) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, colour = c("black", "purple", "black", "purple", "black", "black")), axis.title.x = element_blank()) +
+  theme(legend.position = "top")
+pwij
+```
+
+N = 4 to 6
+
+
+#### 5.1: statistics on cheating
+
+
+##### 5.1.1: are they cheating?
+
+Iterated t-tests for difference from zero, with Bonferroni-Holm correction. For standard conditions, we expected them to cheat, so we do one-tailed tests. We didn't have an a priori expectation for the effect of stress, so we do two-tailed tests.
+
+```{r}
+pvalues <- c()
+
+# DK4324
+# pH 5.1
+x <- cheatdata[which(cheatdata$treatment == "5.1" & cheatdata$defector == "DK4324"),]$wij
+res <- t.test(x = x, mu = 0, alternative = "two.sided")
+pvalues <- c(pvalues, res$p.value)
+
+# pH 6.8
+x <- cheatdata[which(cheatdata$treatment == "6.8" & cheatdata$defector == "DK4324"),]$wij
+res <- t.test(x = x, mu = 0, alternative = "greater")
+pvalues <- c(pvalues, res$p.value)
+
+# pH 8.7
+x <- cheatdata[which(cheatdata$treatment == "8.7" & cheatdata$defector == "DK4324"),]$wij
+res <- t.test(x = x, mu = 0, alternative = "two.sided")
+pvalues <- c(pvalues, res$p.value)
+
+# 50
+x <- cheatdata[which(cheatdata$treatment == "50" & cheatdata$defector == "DK4324"),]$wij
+res <- t.test(x = x, mu = 0, alternative = "greater")
+pvalues <- c(pvalues, res$p.value)
+
+# 55
+x <- cheatdata[which(cheatdata$treatment == "55" & cheatdata$defector == "DK4324"),]$wij
+res <- t.test(x = x, mu = 0, alternative = "two.sided")
+pvalues <- c(pvalues, res$p.value)
+
+# 58
+x <- cheatdata[which(cheatdata$treatment == "58" & cheatdata$defector == "DK4324"),]$wij
+res <- t.test(x = x, mu = 0, alternative = "two.sided")
+pvalues <- c(pvalues, res$p.value)
+
+
+# DK5208
+# pH 5.1
+x <- cheatdata[which(cheatdata$treatment == "5.1" & cheatdata$defector == "DK5208"),]$wij
+res <- t.test(x = x, mu = 0, alternative = "two.sided")
+pvalues <- c(pvalues, res$p.value)
+
+# pH 6.8
+x <- cheatdata[which(cheatdata$treatment == "6.8" & cheatdata$defector == "DK5208"),]$wij
+res <- t.test(x = x, mu = 0, alternative = "greater")
+pvalues <- c(pvalues, res$p.value)
+
+# pH 8.7
+x <- cheatdata[which(cheatdata$treatment == "8.7" & cheatdata$defector == "DK5208"),]$wij
+res <- t.test(x = x, mu = 0, alternative = "two.sided")
+pvalues <- c(pvalues, res$p.value)
+
+# 50
+x <- cheatdata[which(cheatdata$treatment == "50" & cheatdata$defector == "DK5208"),]$wij
+res <- t.test(x = x, mu = 0, alternative = "greater")
+pvalues <- c(pvalues, res$p.value)
+
+# 55
+x <- cheatdata[which(cheatdata$treatment == "55" & cheatdata$defector == "DK5208"),]$wij
+res <- t.test(x = x, mu = 0, alternative = "two.sided")
+pvalues <- c(pvalues, res$p.value)
+
+# 58
+x <- cheatdata[which(cheatdata$treatment == "58" & cheatdata$defector == "DK5208"),]$wij
+res <- t.test(x = x, mu = 0, alternative = "two.sided")
+pvalues <- c(pvalues, res$p.value)
+
+
+# multiple testing correction
+
+c("DK4324: 5.1, 6.8, 8.7, 50, 55, 58. DK5208: 5.1, 6.8, 8.7, 50, 55, 58.")
+round(p.adjust(pvalues, method = "BH"), 4)
+```
+
+For standard conditions, we use one-tailed t-tests because we expect Wij to be greater than zero.
+
+
+##### 5.1.2: effects of stress
+
+We run a GLM to check for treatment-based and defector-based differences in Wij within each environment. We test pH and temperature separately.
+
+pH:
+
+```{r}
+fit <- aov(wij ~ defector * treatment, data = cheatdata[which(cheatdata$environment == "pH"),])
+plot(fit)
+summary(fit)
+```
+
+There is an interaction between defector and treatment; the pH treatments affected the two defectors differently.
+
+temperature:
+
+```{r}
+fit <- aov(wij ~ defector * treatment, data = cheatdata[which(cheatdata$environment == "temperature"),])
+plot(fit)
+summary(fit)
+```
+
+DK5208 is different from DK4324, particularly at 55 deg C. We proceed with testing them separately.
+
+
+##### 5.1.1: DK4324
+
+```{r}
+fit <- aov(wij ~ treatment, data = cheatdata[which(cheatdata$environment == "pH"& cheatdata$defector == "DK4324"),])
+plot(fit)
+summary(fit)
+
+# post-hoc tests for which comparisons are actually different.
+TukeyHSD(fit)
+```
+
+pH 8.7 significantly reduces relative fitness in DK4324 (compared to both 6.8 and 5.1), preventing it from potentially cheating.
+
+```{r}
+fit <- aov(wij ~ treatment, data = cheatdata[which(cheatdata$environment == "temperature"& cheatdata$defector == "DK4324"),])
+plot(fit)
+summary(fit)
+
+# post-hoc tests for which comparisons are actually different.
+TukeyHSD(fit)
+```
+
+55 deg C also reduces relative fitness of DK4324, preventing it from potentially cheating. Interestingly, 58 deg C does not, suggesting that the large variance in Wij caused by the impact of temperature stress on the cooperator makes the relative outcome for each on in mixture unpredictable.
+
+
+##### 5.1.2: DK5208
+
+```{r}
+fit <- aov(wij ~ treatment, data = cheatdata[which(cheatdata$environment == "pH"& cheatdata$defector == "DK5208"),])
+plot(fit)
+summary(fit)
+
+# post-hoc tests for which comparisons are actually different.
+TukeyHSD(fit)
+```
+
+pH 8.7 significantly increases relative fitness in DK5208, enhancing its cheating advantage over the cooperator - synergistic pleiotropy.
+
+```{r}
+fit <- aov(wij ~ treatment, data = cheatdata[which(cheatdata$environment == "temperature"& cheatdata$defector == "DK5208"),])
+plot(fit)
+summary(fit)
+```
+
+Increased heat has no significant impact on Wij of DK5208.
+
+#### 5.2: decorate graph with significance
+
+```{r}
+# graph the number of fruiting bodies, with statistical annotation written on the graph
+# data frame with annotation info
+numtext <- data.frame(label = c("**", "*", "*"), 
+                      defector = c(rep(names(table(cheatdata$defector))[1], 2), rep(names(table(cheatdata$defector))[2], 1)), 
+                      x = c(3, 5, 3), 
+                      y = c(0.55, -0.5, 3.5))
+
+pwij <- ggplot(cheatdata, aes(x = as.factor(treatment), y = wij)) +
+  geom_point(size = 2, alpha = 0.3, show.legend = FALSE, position = position_dodge(width = 0.5), aes(color = environment)) +
+  stat_summary(fun.data = "mean_cl_normal", size = 0.7, aes(color = environment), position = position_dodge(width = 0.5)) +
+  geom_abline(slope = 0, intercept = 0) +
+  facet_wrap(~defector, dir="h", ncol = 2) +
+  labs(y = "Relative fitness (" ~ italic(W[ij]) ~ ")", color = "Stress:") +
+  customPlotTheme +
+  scale_colour_viridis_d(option = "mako", begin = 0.35, end = 0.75, direction = -1, labels = envlabels) +
+  scale_x_discrete(labels = trtlabels) +
+  geom_text(data = numtext, mapping = aes(x = x, y = y, label = label)) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, colour = c("black", "purple", "black", "purple", "black", "black")), axis.title.x = element_blank()) +
+  theme(legend.position = "top")
+pwij
+```
+
+
+### Output figures
+
+```{r echo = FALSE, include = FALSE}
+# save the figure files
+ggsave(pPCspores, filename = "FigS2_PCspores.png", width = 20, height = 15, units = "cm")
+ggsave(pstress, filename = "FigS3_stressspores.png", width = 20, height = 20, units = "cm")
+ggsave(pstresstemp, filename = "Fig3_tempstress.png", width = 20, height = 20, units = "cm")
+ggsave(pstressph, filename = "Fig4_pHstress.png", width = 20, height = 20, units = "cm")
+ggsave(pwij, filename = "Fig2_wij.png", width = 25, height = 15, units = "cm")
+```

@@ -1,0 +1,335 @@
+replicate,plate,antibiotic,defector,cooperator,type,environment,treatment,dilution,cfus
+4,GJV1,none,none,GJV1,control,temperature,50,5,48
+4,GJV1,none,none,GJV1,control,temperature,55,4,77
+4,GJV1,none,none,GJV1,control,temperature,58,2,270
+4,GJV1,none,none,GJV1,control,pH,5.1,5,65
+4,GJV1,none,none,GJV1,control,pH,6.8,5,69
+4,GJV1,none,none,GJV1,control,pH,8.7,3,2664
+4,GJV2,none,none,GJV2,control,temperature,50,4,109
+4,GJV2,rif,none,GJV2,techcontrol,temperature,50,4,98
+4,GJV2,none,none,GJV2,control,temperature,55,3,260
+4,GJV2,rif,none,GJV2,techcontrol,temperature,55,2,252
+4,GJV2,none,none,GJV2,control,temperature,58,2,40
+4,GJV2,rif,none,GJV2,techcontrol,temperature,58,1,0
+4,GJV2,none,none,GJV2,control,pH,5.1,3,1296
+4,GJV2,rif,none,GJV2,techcontrol,pH,5.1,3,1412
+4,GJV2,none,none,GJV2,control,pH,6.8,4,228
+4,GJV2,rif,none,GJV2,techcontrol,pH,6.8,4,213
+4,GJV2,none,none,GJV2,control,pH,8.7,3,66
+4,GJV2,rif,none,GJV2,techcontrol,pH,8.7,3,66
+4,Line L,none,Line L,none,control,temperature,50,1,2
+4,Line L,rif,Line L,none,techcontrol,temperature,50,1,0
+4,DK4324,none,DK4324,none,control,temperature,50,1,0
+4,DK4324,kan,DK4324,none,techcontrol,temperature,50,1,0
+4,DK5208,none,DK5208,none,control,temperature,50,0.5,4
+4,GJV1:Line L,none,Line L,GJV1,totalspores,temperature,50,5,17
+4,GJV1:Line L,rif,Line L,GJV1,defectorspores,temperature,50,4,68
+4,GJV1:Line L,none,Line L,GJV1,totalspores,temperature,55,4,90
+4,GJV1:Line L,rif,Line L,GJV1,defectorspores,temperature,55,2,540
+4,GJV1:Line L,none,Line L,GJV1,totalspores,temperature,58,2,111
+4,GJV1:Line L,rif,Line L,GJV1,defectorspores,temperature,58,1,0
+4,GJV1:Line L,none,Line L,GJV1,totalspores,pH,5.1,5,33
+4,GJV1:Line L,rif,Line L,GJV1,defectorspores,pH,5.1,3,1424
+4,GJV1:Line L,none,Line L,GJV1,totalspores,pH,6.8,3,273
+4,GJV1:Line L,rif,Line L,GJV1,defectorspores,pH,6.8,3,116
+4,GJV2:DK4324,none,DK4324,GJV2,totalspores,temperature,50,3,272
+4,GJV2:DK4324,kan,DK4324,GJV2,defectorspores,temperature,50,3,80
+4,GJV2:DK4324,none,DK4324,GJV2,totalspores,temperature,55,2,323
+4,GJV2:DK4324,kan,DK4324,GJV2,defectorspores,temperature,55,1,17
+4,GJV2:DK4324,none,DK4324,GJV2,totalspores,temperature,58,1,0
+4,GJV2:DK4324,kan,DK4324,GJV2,defectorspores,temperature,58,1,0
+4,GJV2:DK4324,none,DK4324,GJV2,totalspores,pH,5.1,3,332
+4,GJV2:DK4324,kan,DK4324,GJV2,defectorspores,pH,5.1,3,78
+4,GJV2:DK4324,none,DK4324,GJV2,totalspores,pH,6.8,4,107
+4,GJV2:DK4324,kan,DK4324,GJV2,defectorspores,pH,6.8,3,241
+4,GJV2:DK4324,none,DK4324,GJV2,totalspores,pH,8.7,1,0
+4,GJV2:DK4324,kan,DK4324,GJV2,defectorspores,pH,8.7,1,0
+4,GJV2:DK5208,none,DK5208,GJV2,totalspores,temperature,50,5,49
+4,GJV2:DK5208,rif,DK5208,GJV2,cooperatorspores,temperature,50,3,496
+4,GJV2:DK5208,none,DK5208,GJV2,totalspores,temperature,55,4,105
+4,GJV2:DK5208,rif,DK5208,GJV2,cooperatorspores,temperature,55,2,504
+4,GJV2:DK5208,none,DK5208,GJV2,totalspores,temperature,58,2,274
+4,GJV2:DK5208,rif,DK5208,GJV2,cooperatorspores,temperature,58,1,1
+4,GJV2:DK5208,none,DK5208,GJV2,totalspores,pH,5.1,5,65
+4,GJV2:DK5208,rif,DK5208,GJV2,cooperatorspores,pH,5.1,3,437
+4,GJV2:DK5208,none,DK5208,GJV2,totalspores,pH,6.8,5,54
+4,GJV2:DK5208,rif,DK5208,GJV2,cooperatorspores,pH,6.8,4,55
+4,GJV2:DK5208,none,DK5208,GJV2,totalspores,pH,8.7,3,1896
+4,GJV2:DK5208,rif,DK5208,GJV2,cooperatorspores,pH,8.7,3,49
+5,GJV1,none,none,GJV1,control,temperature,50,5,50
+5,GJV1,none,none,GJV1,control,temperature,55,3,275
+5,GJV1,none,none,GJV1,control,temperature,58,2,239
+5,GJV1,none,none,GJV1,control,pH,5.1,5,42
+5,GJV1,none,none,GJV1,control,pH,6.8,5,62
+5,GJV1,none,none,GJV1,control,pH,8.7,3,382
+5,GJV2,none,none,GJV2,control,temperature,50,4,201
+5,GJV2,rif,none,GJV2,techcontrol,temperature,50,4,93
+5,GJV2,none,none,GJV2,control,temperature,55,3,175
+5,GJV2,rif,none,GJV2,techcontrol,temperature,55,3,158
+5,GJV2,none,none,GJV2,control,temperature,58,2,77
+5,GJV2,rif,none,GJV2,techcontrol,temperature,58,2,68
+5,GJV2,none,none,GJV2,control,pH,5.1,3,597
+5,GJV2,rif,none,GJV2,techcontrol,pH,5.1,3,723
+5,GJV2,none,none,GJV2,control,pH,6.8,4,150
+5,GJV2,rif,none,GJV2,techcontrol,pH,6.8,4,166
+5,GJV2,none,none,GJV2,control,pH,8.7,2,229
+5,GJV2,rif,none,GJV2,techcontrol,pH,8.7,2,287
+5,Line L,none,Line L,none,control,temperature,50,1,13
+5,Line L,rif,Line L,none,techcontrol,temperature,50,1,2
+5,DK4324,none,DK4324,none,control,temperature,50,0.5,3136
+5,DK4324,kan,DK4324,none,techcontrol,temperature,50,0.5,50
+5,DK5208,none,DK5208,none,control,temperature,50,0.097,5
+5,GJV1:Line L,none,Line L,GJV1,totalspores,temperature,50,5,72
+5,GJV1:Line L,rif,Line L,GJV1,defectorspores,temperature,50,4,58
+5,GJV1:Line L,none,Line L,GJV1,totalspores,temperature,55,4,65
+5,GJV1:Line L,rif,Line L,GJV1,defectorspores,temperature,55,3,70
+5,GJV1:Line L,none,Line L,GJV1,totalspores,temperature,58,1,346
+5,GJV1:Line L,rif,Line L,GJV1,defectorspores,temperature,58,1,29
+5,GJV1:Line L,none,Line L,GJV1,totalspores,pH,5.1,5,25
+5,GJV1:Line L,rif,Line L,GJV1,defectorspores,pH,5.1,3,475
+5,GJV1:Line L,none,Line L,GJV1,totalspores,pH,6.8,4,298
+5,GJV1:Line L,rif,Line L,GJV1,defectorspores,pH,6.8,4,66
+5,GJV1:Line L,none,Line L,GJV1,totalspores,pH,8.7,2,174
+5,GJV1:Line L,rif,Line L,GJV1,defectorspores,pH,8.7,1,305
+5,GJV2:DK4324,none,DK4324,GJV2,totalspores,temperature,50,3,173
+5,GJV2:DK4324,kan,DK4324,GJV2,defectorspores,temperature,50,3,28
+5,GJV2:DK4324,none,DK4324,GJV2,totalspores,temperature,55,2,276
+5,GJV2:DK4324,kan,DK4324,GJV2,defectorspores,temperature,55,1,17
+5,GJV2:DK4324,none,DK4324,GJV2,totalspores,temperature,58,1,1
+5,GJV2:DK4324,kan,DK4324,GJV2,defectorspores,temperature,58,1,0
+5,GJV2:DK4324,none,DK4324,GJV2,totalspores,pH,5.1,3,144
+5,GJV2:DK4324,kan,DK4324,GJV2,defectorspores,pH,5.1,3,35
+5,GJV2:DK4324,none,DK4324,GJV2,totalspores,pH,6.8,4,35
+5,GJV2:DK4324,kan,DK4324,GJV2,defectorspores,pH,6.8,3,62
+5,GJV2:DK4324,none,DK4324,GJV2,totalspores,pH,8.7,1,183
+5,GJV2:DK4324,kan,DK4324,GJV2,defectorspores,pH,8.7,1,0
+5,GJV2:DK5208,none,DK5208,GJV2,totalspores,temperature,50,5,77
+5,GJV2:DK5208,rif,DK5208,GJV2,cooperatorspores,temperature,50,3,322
+5,GJV2:DK5208,none,DK5208,GJV2,totalspores,temperature,55,4,43
+5,GJV2:DK5208,rif,DK5208,GJV2,cooperatorspores,temperature,55,3,46
+5,GJV2:DK5208,none,DK5208,GJV2,totalspores,temperature,58,2,245
+5,GJV2:DK5208,rif,DK5208,GJV2,cooperatorspores,temperature,58,1,75
+5,GJV2:DK5208,none,DK5208,GJV2,totalspores,pH,5.1,5,38
+5,GJV2:DK5208,rif,DK5208,GJV2,cooperatorspores,pH,5.1,3,138
+5,GJV2:DK5208,none,DK5208,GJV2,totalspores,pH,6.8,5,39
+5,GJV2:DK5208,rif,DK5208,GJV2,cooperatorspores,pH,6.8,4,37
+5,GJV2:DK5208,none,DK5208,GJV2,totalspores,pH,8.7,3,608
+5,GJV2:DK5208,rif,DK5208,GJV2,cooperatorspores,pH,8.7,2,70
+6,GJV1,none,none,GJV1,control,temperature,50,5,38
+6,GJV1,none,none,GJV1,control,temperature,55,4,70
+6,GJV1,none,none,GJV1,control,temperature,58,2,62
+6,GJV1,none,none,GJV1,control,pH,5.1,5,55
+6,GJV1,none,none,GJV1,control,pH,6.8,5,81
+6,GJV1,none,none,GJV1,control,pH,8.7,4,84
+6,GJV2,none,none,GJV2,control,temperature,50,4,126
+6,GJV2,rif,none,GJV2,techcontrol,temperature,50,4,139
+6,GJV2,none,none,GJV2,control,temperature,55,3,87
+6,GJV2,rif,none,GJV2,techcontrol,temperature,55,3,117
+6,GJV2,none,none,GJV2,control,temperature,58,1,149
+6,GJV2,rif,none,GJV2,techcontrol,temperature,58,1,153
+6,GJV2,none,none,GJV2,control,pH,5.1,4,47
+6,GJV2,rif,none,GJV2,techcontrol,pH,5.1,4,76
+6,GJV2,none,none,GJV2,control,pH,6.8,4,165
+6,GJV2,rif,none,GJV2,techcontrol,pH,6.8,4,164
+6,GJV2,none,none,GJV2,control,pH,8.7,2,292
+6,GJV2,rif,none,GJV2,techcontrol,pH,8.7,2,268
+6,Line L,none,Line L,none,control,temperature,50,1,341
+6,Line L,rif,Line L,none,techcontrol,temperature,50,2,63
+6,DK5208,none,DK5208,none,control,temperature,50,0.046,28
+6,GJV1:Line L,none,Line L,GJV1,totalspores,temperature,50,5,46
+6,GJV1:Line L,rif,Line L,GJV1,defectorspores,temperature,50,3,724
+6,GJV1:Line L,none,Line L,GJV1,totalspores,temperature,55,4,81
+6,GJV1:Line L,rif,Line L,GJV1,defectorspores,temperature,55,3,199
+6,GJV1:Line L,none,Line L,GJV1,totalspores,temperature,58,2,48
+6,GJV1:Line L,rif,Line L,GJV1,defectorspores,temperature,58,0.5,776
+6,GJV1:Line L,none,Line L,GJV1,totalspores,pH,5.1,5,46
+6,GJV1:Line L,rif,Line L,GJV1,defectorspores,pH,5.1,4,52
+6,GJV1:Line L,none,Line L,GJV1,totalspores,pH,6.8,5,84
+6,GJV1:Line L,rif,Line L,GJV1,defectorspores,pH,6.8,4,132
+6,GJV1:Line L,none,Line L,GJV1,totalspores,pH,8.7,3,369
+6,GJV1:Line L,rif,Line L,GJV1,defectorspores,pH,8.7,2,370
+6,GJV2:DK5208,none,DK5208,GJV2,totalspores,temperature,50,5,34
+6,GJV2:DK5208,rif,DK5208,GJV2,cooperatorspores,temperature,50,4,72
+6,GJV2:DK5208,none,DK5208,GJV2,totalspores,temperature,55,4,34
+6,GJV2:DK5208,rif,DK5208,GJV2,cooperatorspores,temperature,55,3,146
+6,GJV2:DK5208,none,DK5208,GJV2,totalspores,temperature,58,2,11
+6,GJV2:DK5208,rif,DK5208,GJV2,cooperatorspores,temperature,58,1,12
+6,GJV2:DK5208,none,DK5208,GJV2,totalspores,pH,5.1,5,41
+6,GJV2:DK5208,rif,DK5208,GJV2,cooperatorspores,pH,5.1,3,270
+6,GJV2:DK5208,none,DK5208,GJV2,totalspores,pH,6.8,5,38
+6,GJV2:DK5208,rif,DK5208,GJV2,cooperatorspores,pH,6.8,4,61
+6,GJV2:DK5208,none,DK5208,GJV2,totalspores,pH,8.7,4,66
+6,GJV2:DK5208,rif,DK5208,GJV2,cooperatorspores,pH,8.7,2,293
+7,GJV1,none,none,GJV1,control,temperature,50,4,295
+7,GJV1,none,none,GJV1,control,temperature,55,3,276
+7,GJV1,none,none,GJV1,control,temperature,58,2,23
+7,GJV1,none,none,GJV1,control,pH,5.1,4,245
+7,GJV1,none,none,GJV1,control,pH,6.8,5,70
+7,GJV1,none,none,GJV1,control,pH,8.7,3,66
+7,GJV2,none,none,GJV2,control,temperature,50,4,220
+7,GJV2,rif,none,GJV2,techcontrol,temperature,50,4,221
+7,GJV2,none,none,GJV2,control,temperature,55,4,31
+7,GJV2,rif,none,GJV2,techcontrol,temperature,55,4,32
+7,GJV2,none,none,GJV2,control,temperature,58,2,52
+7,GJV2,rif,none,GJV2,techcontrol,temperature,58,2,73
+7,GJV2,none,none,GJV2,control,pH,5.1,4,87
+7,GJV2,rif,none,GJV2,techcontrol,pH,5.1,4,106
+7,GJV2,none,none,GJV2,control,pH,6.8,4,350
+7,GJV2,rif,none,GJV2,techcontrol,pH,6.8,4,366
+7,GJV2,none,none,GJV2,control,pH,8.7,2,77
+7,GJV2,rif,none,GJV2,techcontrol,pH,8.7,2,86
+7,Line L,none,Line L,none,control,temperature,50,1,0
+7,Line L,rif,Line L,none,techcontrol,temperature,50,1,0
+7,DK4324,none,DK4324,none,control,temperature,50,1,2
+7,DK4324,kan,DK4324,none,techcontrol,temperature,50,0.5,0
+7,DK5208,none,DK5208,none,control,temperature,50,0.046,1
+7,GJV1:Line L,none,Line L,GJV1,totalspores,temperature,50,4,269
+7,GJV1:Line L,rif,Line L,GJV1,defectorspores,temperature,50,4,41
+7,GJV1:Line L,none,Line L,GJV1,totalspores,temperature,55,4,40
+7,GJV1:Line L,rif,Line L,GJV1,defectorspores,temperature,55,3,60
+7,GJV1:Line L,none,Line L,GJV1,totalspores,temperature,58,2,80
+7,GJV1:Line L,rif,Line L,GJV1,defectorspores,temperature,58,1,91
+7,GJV1:Line L,none,Line L,GJV1,totalspores,pH,5.1,4,173
+7,GJV1:Line L,rif,Line L,GJV1,defectorspores,pH,5.1,3,135
+7,GJV1:Line L,none,Line L,GJV1,totalspores,pH,6.8,5,51
+7,GJV1:Line L,rif,Line L,GJV1,defectorspores,pH,6.8,4,75
+7,GJV1:Line L,none,Line L,GJV1,totalspores,pH,8.7,2,60
+7,GJV1:Line L,rif,Line L,GJV1,defectorspores,pH,8.7,1,158
+7,GJV2:DK4324,none,DK4324,GJV2,totalspores,temperature,50,3,150
+7,GJV2:DK4324,kan,DK4324,GJV2,defectorspores,temperature,50,3,66
+7,GJV2:DK4324,none,DK4324,GJV2,totalspores,temperature,55,2,71
+7,GJV2:DK4324,kan,DK4324,GJV2,defectorspores,temperature,55,0.5,9
+7,GJV2:DK4324,none,DK4324,GJV2,totalspores,temperature,58,0.5,31
+7,GJV2:DK4324,kan,DK4324,GJV2,defectorspores,temperature,58,0.5,1
+7,GJV2:DK4324,none,DK4324,GJV2,totalspores,pH,5.1,3,263
+7,GJV2:DK4324,kan,DK4324,GJV2,defectorspores,pH,5.1,2,590
+7,GJV2:DK4324,none,DK4324,GJV2,totalspores,pH,6.8,4,190
+7,GJV2:DK4324,kan,DK4324,GJV2,defectorspores,pH,6.8,3,282
+7,GJV2:DK4324,none,DK4324,GJV2,totalspores,pH,8.7,1,15
+7,GJV2:DK4324,kan,DK4324,GJV2,defectorspores,pH,8.7,0.5,0
+7,GJV2:DK5208,none,DK5208,GJV2,totalspores,temperature,50,4,164
+7,GJV2:DK5208,rif,DK5208,GJV2,cooperatorspores,temperature,50,4,59
+7,GJV2:DK5208,none,DK5208,GJV2,totalspores,temperature,55,3,162
+7,GJV2:DK5208,rif,DK5208,GJV2,cooperatorspores,temperature,55,3,83
+7,GJV2:DK5208,none,DK5208,GJV2,totalspores,temperature,58,1,68
+7,GJV2:DK5208,rif,DK5208,GJV2,cooperatorspores,temperature,58,0.5,186
+7,GJV2:DK5208,none,DK5208,GJV2,totalspores,pH,5.1,4,150
+7,GJV2:DK5208,rif,DK5208,GJV2,cooperatorspores,pH,5.1,4,38
+7,GJV2:DK5208,none,DK5208,GJV2,totalspores,pH,6.8,4,328
+7,GJV2:DK5208,rif,DK5208,GJV2,cooperatorspores,pH,6.8,4,90
+7,GJV2:DK5208,none,DK5208,GJV2,totalspores,pH,8.7,3,103
+7,GJV2:DK5208,rif,DK5208,GJV2,cooperatorspores,pH,8.7,2,191
+8,GJV1,none,none,GJV1,control,temperature,50,5,35
+8,GJV1,none,none,GJV1,control,temperature,55,4,183
+8,GJV1,none,none,GJV1,control,temperature,58,3,152
+8,GJV1,none,none,GJV1,control,pH,5.1,4,181
+8,GJV1,none,none,GJV1,control,pH,6.8,4,87
+8,GJV1,none,none,GJV1,control,pH,8.7,2,298
+8,GJV2,none,none,GJV2,control,temperature,50,5,117
+8,GJV2,rif,none,GJV2,techcontrol,temperature,50,5,115
+8,GJV2,none,none,GJV2,control,temperature,55,4,331
+8,GJV2,rif,none,GJV2,techcontrol,temperature,55,4,212
+8,GJV2,none,none,GJV2,control,temperature,58,3,466
+8,GJV2,rif,none,GJV2,techcontrol,temperature,58,3,320
+8,GJV2,none,none,GJV2,control,pH,5.1,5,41
+8,GJV2,rif,none,GJV2,techcontrol,pH,5.1,5,46
+8,GJV2,none,none,GJV2,control,pH,6.8,4,257
+8,GJV2,rif,none,GJV2,techcontrol,pH,6.8,4,325
+8,GJV2,none,none,GJV2,control,pH,8.7,3,245
+8,GJV2,rif,none,GJV2,techcontrol,pH,8.7,4,34
+8,Line L,none,Line L,none,control,temperature,50,1,3440
+8,DK4324,none,DK4324,none,control,temperature,50,0,4000
+8,DK5208,none,DK5208,none,control,temperature,50,0,0
+8,GJV1:Line L,none,Line L,GJV1,totalspores,temperature,50,4,210
+8,GJV1:Line L,rif,Line L,GJV1,defectorspores,temperature,50,3,76
+8,GJV1:Line L,none,Line L,GJV1,totalspores,temperature,55,4,146
+8,GJV1:Line L,rif,Line L,GJV1,defectorspores,temperature,55,3,38
+8,GJV1:Line L,none,Line L,GJV1,totalspores,temperature,58,2,546
+8,GJV1:Line L,rif,Line L,GJV1,defectorspores,temperature,58,1,136
+8,GJV1:Line L,none,Line L,GJV1,totalspores,pH,5.1,4,206
+8,GJV1:Line L,rif,Line L,GJV1,defectorspores,pH,5.1,3,255
+8,GJV1:Line L,none,Line L,GJV1,totalspores,pH,6.8,4,30
+8,GJV1:Line L,rif,Line L,GJV1,defectorspores,pH,6.8,3,11
+8,GJV1:Line L,none,Line L,GJV1,totalspores,pH,8.7,3,32
+8,GJV1:Line L,rif,Line L,GJV1,defectorspores,pH,8.7,2,37
+8,GJV2:DK4324,none,DK4324,GJV2,totalspores,temperature,50,4,952
+8,GJV2:DK4324,kan,DK4324,GJV2,defectorspores,temperature,50,3,592
+8,GJV2:DK4324,none,DK4324,GJV2,totalspores,temperature,55,3,1368
+8,GJV2:DK4324,kan,DK4324,GJV2,defectorspores,temperature,55,0.5,3244
+8,GJV2:DK4324,none,DK4324,GJV2,totalspores,temperature,58,0.5,9728
+8,GJV2:DK4324,kan,DK4324,GJV2,defectorspores,temperature,58,0.5,30
+8,GJV2:DK4324,none,DK4324,GJV2,totalspores,pH,5.1,4,167
+8,GJV2:DK4324,kan,DK4324,GJV2,defectorspores,pH,5.1,3,124
+8,GJV2:DK4324,none,DK4324,GJV2,totalspores,pH,6.8,4,61
+8,GJV2:DK4324,kan,DK4324,GJV2,defectorspores,pH,6.8,3,68
+8,GJV2:DK4324,none,DK4324,GJV2,totalspores,pH,8.7,1,29
+8,GJV2:DK4324,kan,DK4324,GJV2,defectorspores,pH,8.7,0.5,2
+8,GJV2:DK5208,none,DK5208,GJV2,totalspores,temperature,50,5,137
+8,GJV2:DK5208,rif,DK5208,GJV2,cooperatorspores,temperature,50,4,135
+8,GJV2:DK5208,none,DK5208,GJV2,totalspores,temperature,55,4,435
+8,GJV2:DK5208,rif,DK5208,GJV2,cooperatorspores,temperature,55,4,74
+8,GJV2:DK5208,none,DK5208,GJV2,totalspores,temperature,58,3,1024
+8,GJV2:DK5208,rif,DK5208,GJV2,cooperatorspores,temperature,58,1,3360
+8,GJV2:DK5208,none,DK5208,GJV2,totalspores,pH,5.1,5,44
+8,GJV2:DK5208,rif,DK5208,GJV2,cooperatorspores,pH,5.1,4,48
+8,GJV2:DK5208,none,DK5208,GJV2,totalspores,pH,6.8,5,45
+8,GJV2:DK5208,rif,DK5208,GJV2,cooperatorspores,pH,6.8,4,48
+8,GJV2:DK5208,none,DK5208,GJV2,totalspores,pH,8.7,4,65
+8,GJV2:DK5208,rif,DK5208,GJV2,cooperatorspores,pH,8.7,2,95
+9,GJV1,none,none,GJV1,control,temperature,50,5,103
+9,GJV1,none,none,GJV1,control,temperature,55,4,49
+9,GJV1,none,none,GJV1,control,temperature,58,2,5
+9,GJV1,none,none,GJV1,control,pH,5.1,4,186
+9,GJV1,none,none,GJV1,control,pH,6.8,4,71
+9,GJV1,none,none,GJV1,control,pH,8.7,2,0
+9,GJV2,none,none,GJV2,control,temperature,50,5,36
+9,GJV2,rif,none,GJV2,techcontrol,temperature,50,5,31
+9,GJV2,none,none,GJV2,control,temperature,55,4,115
+9,GJV2,rif,none,GJV2,techcontrol,temperature,55,4,124
+9,GJV2,none,none,GJV2,control,temperature,58,2,0
+9,GJV2,rif,none,GJV2,techcontrol,temperature,58,2,0
+9,GJV2,none,none,GJV2,control,pH,5.1,2,134
+9,GJV2,rif,none,GJV2,techcontrol,pH,5.1,2,128
+9,GJV2,none,none,GJV2,control,pH,6.8,4,36
+9,GJV2,rif,none,GJV2,techcontrol,pH,6.8,4,36
+9,GJV2,none,none,GJV2,control,pH,8.7,2,0
+9,GJV2,rif,none,GJV2,techcontrol,pH,8.7,2,0
+9,Line L,none,Line L,none,control,temperature,50,2,556
+9,DK4324,none,DK4324,none,control,temperature,50,2,532
+9,DK5208,none,DK5208,none,control,temperature,50,1,0
+9,GJV1:Line L,none,Line L,GJV1,totalspores,temperature,50,5,48
+9,GJV1:Line L,rif,Line L,GJV1,defectorspores,temperature,50,4,168
+9,GJV1:Line L,none,Line L,GJV1,totalspores,temperature,55,4,99
+9,GJV1:Line L,rif,Line L,GJV1,defectorspores,temperature,55,3,168
+9,GJV1:Line L,none,Line L,GJV1,totalspores,temperature,58,1,1
+9,GJV1:Line L,rif,Line L,GJV1,defectorspores,temperature,58,0.5,2
+9,GJV1:Line L,none,Line L,GJV1,totalspores,pH,5.1,4,221
+9,GJV1:Line L,rif,Line L,GJV1,defectorspores,pH,5.1,4,85
+9,GJV1:Line L,none,Line L,GJV1,totalspores,pH,6.8,4,22
+9,GJV1:Line L,rif,Line L,GJV1,defectorspores,pH,6.8,3,3
+9,GJV1:Line L,none,Line L,GJV1,totalspores,pH,8.7,2,0
+9,GJV1:Line L,rif,Line L,GJV1,defectorspores,pH,8.7,2,0
+9,GJV2:DK4324,none,DK4324,GJV2,totalspores,temperature,50,4,214
+9,GJV2:DK4324,kan,DK4324,GJV2,defectorspores,temperature,50,4,38
+9,GJV2:DK4324,none,DK4324,GJV2,totalspores,temperature,55,3,66
+9,GJV2:DK4324,kan,DK4324,GJV2,defectorspores,temperature,55,0.3,78
+9,GJV2:DK4324,none,DK4324,GJV2,totalspores,temperature,58,0.7,0
+9,GJV2:DK4324,kan,DK4324,GJV2,defectorspores,temperature,58,0.3,0
+9,GJV2:DK4324,none,DK4324,GJV2,totalspores,pH,5.1,4,123
+9,GJV2:DK4324,kan,DK4324,GJV2,defectorspores,pH,5.1,3,42
+9,GJV2:DK4324,none,DK4324,GJV2,totalspores,pH,6.8,3,52
+9,GJV2:DK4324,kan,DK4324,GJV2,defectorspores,pH,6.8,2,23
+9,GJV2:DK4324,none,DK4324,GJV2,totalspores,pH,8.7,0.8,0
+9,GJV2:DK4324,kan,DK4324,GJV2,defectorspores,pH,8.7,0.2,0
+9,GJV2:DK5208,none,DK5208,GJV2,totalspores,temperature,50,5,69
+9,GJV2:DK5208,rif,DK5208,GJV2,cooperatorspores,temperature,50,5,24
+9,GJV2:DK5208,none,DK5208,GJV2,totalspores,temperature,55,4,129
+9,GJV2:DK5208,rif,DK5208,GJV2,cooperatorspores,temperature,55,4,27
+9,GJV2:DK5208,none,DK5208,GJV2,totalspores,temperature,58,1,4
+9,GJV2:DK5208,rif,DK5208,GJV2,cooperatorspores,temperature,58,1,1
+9,GJV2:DK5208,none,DK5208,GJV2,totalspores,pH,5.1,5,29
+9,GJV2:DK5208,rif,DK5208,GJV2,cooperatorspores,pH,5.1,4,58
+9,GJV2:DK5208,none,DK5208,GJV2,totalspores,pH,6.8,4,157
+9,GJV2:DK5208,rif,DK5208,GJV2,cooperatorspores,pH,6.8,3,38
+9,GJV2:DK5208,none,DK5208,GJV2,totalspores,pH,8.7,2,0
+9,GJV2:DK5208,rif,DK5208,GJV2,cooperatorspores,pH,8.7,2,0
